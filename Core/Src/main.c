@@ -24,6 +24,7 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "delay.h"
+#include "ST7920.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -44,7 +45,7 @@
 TIM_HandleTypeDef htim1;
 
 /* USER CODE BEGIN PV */
-
+static u8g2_t u8g2;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -88,10 +89,23 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
-  MX_USB_DEVICE_Init();
+  //MX_USB_DEVICE_Init();
   MX_TIM1_Init();
   /* USER CODE BEGIN 2 */
 
+    /* u8glib2 will use frame buffer */
+    u8g2_Setup_st7920_p_192x32_f(&u8g2, U8G2_R0, u8x8_byte_8bit_6800mode, u8g2_gpio_and_delay_stm32);
+    u8g2_InitDisplay(&u8g2);
+    u8g2_SetPowerSave(&u8g2, 0); /* wake up display */
+
+    u8g2_ClearBuffer(&u8g2);
+	u8g2_SetFontMode(&u8g2, 1);
+	u8g2_SetFontDirection(&u8g2, 0);
+	u8g2_SetFont(&u8g2, u8g2_font_helvB18_te);
+
+	u8g2_DrawStr(&u8g2,  0, 15, "hello world");
+	u8g2_DrawStr(&u8g2,  0, 31, "123456789");
+	u8g2_SendBuffer(&u8g2);
 
   /* USER CODE END 2 */
 
@@ -223,15 +237,15 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pin = LCD_RW_Pin|LCD_DB5_Pin|LCD_DB1_Pin|LCD_EN_Pin
                           |LCD_DB2_Pin|LCD_DB0_Pin|LCD_DB7_Pin|LCD_DB3_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  GPIO_InitStruct.Pull = GPIO_PULLDOWN;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
   /*Configure GPIO pins : LCD_DB6_Pin LCD_DB4_Pin LCD_RS_Pin */
   GPIO_InitStruct.Pin = LCD_DB6_Pin|LCD_DB4_Pin|LCD_RS_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  GPIO_InitStruct.Pull = GPIO_PULLDOWN;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
 }
