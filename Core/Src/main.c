@@ -41,8 +41,6 @@
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
-SPI_HandleTypeDef hspi1;
-
 TIM_HandleTypeDef htim1;
 
 /* USER CODE BEGIN PV */
@@ -52,7 +50,6 @@ TIM_HandleTypeDef htim1;
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
-static void MX_SPI1_Init(void);
 static void MX_TIM1_Init(void);
 /* USER CODE BEGIN PFP */
 void MX_GPIO_USB_Init(void);
@@ -91,8 +88,6 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
-  MX_GPIO_USB_Init();
-  MX_SPI1_Init();
   MX_USB_DEVICE_Init();
   MX_TIM1_Init();
   /* USER CODE BEGIN 2 */
@@ -106,7 +101,6 @@ int main(void)
   {
     /* USER CODE END WHILE */
 
-	  HAL_Delay_ms(200);
     /* USER CODE BEGIN 3 */
   }
   /* USER CODE END 3 */
@@ -155,44 +149,6 @@ void SystemClock_Config(void)
   {
     Error_Handler();
   }
-}
-
-/**
-  * @brief SPI1 Initialization Function
-  * @param None
-  * @retval None
-  */
-static void MX_SPI1_Init(void)
-{
-
-  /* USER CODE BEGIN SPI1_Init 0 */
-
-  /* USER CODE END SPI1_Init 0 */
-
-  /* USER CODE BEGIN SPI1_Init 1 */
-
-  /* USER CODE END SPI1_Init 1 */
-  /* SPI1 parameter configuration*/
-  hspi1.Instance = SPI1;
-  hspi1.Init.Mode = SPI_MODE_MASTER;
-  hspi1.Init.Direction = SPI_DIRECTION_2LINES;
-  hspi1.Init.DataSize = SPI_DATASIZE_8BIT;
-  hspi1.Init.CLKPolarity = SPI_POLARITY_LOW;
-  hspi1.Init.CLKPhase = SPI_PHASE_1EDGE;
-  hspi1.Init.NSS = SPI_NSS_SOFT;
-  hspi1.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_8; //up to 10Mbit/s
-  hspi1.Init.FirstBit = SPI_FIRSTBIT_MSB;
-  hspi1.Init.TIMode = SPI_TIMODE_DISABLE;
-  hspi1.Init.CRCCalculation = SPI_CRCCALCULATION_DISABLE;
-  hspi1.Init.CRCPolynomial = 10;
-  if (HAL_SPI_Init(&hspi1) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  /* USER CODE BEGIN SPI1_Init 2 */
-
-  /* USER CODE END SPI1_Init 2 */
-
 }
 
 /**
@@ -256,40 +212,27 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOB_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOA, RST_Pin|SDA_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOA, LCD_RW_Pin|LCD_DB5_Pin|LCD_DB1_Pin|LCD_EN_Pin
+                          |LCD_DB2_Pin|LCD_DB0_Pin|LCD_DB7_Pin|LCD_DB3_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(BLED_GPIO_Port, BLED_Pin, GPIO_PIN_SET);
+  HAL_GPIO_WritePin(GPIOB, LCD_DB6_Pin|LCD_DB4_Pin|LCD_RS_Pin, GPIO_PIN_RESET);
 
-  /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOB, GLED_Pin|RLED_Pin, GPIO_PIN_SET);
-
-  /*Configure GPIO pins : RST_Pin SDA_Pin */
-  GPIO_InitStruct.Pin = RST_Pin|SDA_Pin;
+  /*Configure GPIO pins : LCD_RW_Pin LCD_DB5_Pin LCD_DB1_Pin LCD_EN_Pin
+                           LCD_DB2_Pin LCD_DB0_Pin LCD_DB7_Pin LCD_DB3_Pin */
+  GPIO_InitStruct.Pin = LCD_RW_Pin|LCD_DB5_Pin|LCD_DB1_Pin|LCD_EN_Pin
+                          |LCD_DB2_Pin|LCD_DB0_Pin|LCD_DB7_Pin|LCD_DB3_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
-  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
-  /*Configure GPIO pin : BLED_Pin */
-  GPIO_InitStruct.Pin = BLED_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_OD;
-  GPIO_InitStruct.Pull = GPIO_PULLUP;
-  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-  HAL_GPIO_Init(BLED_GPIO_Port, &GPIO_InitStruct);
-
-  /*Configure GPIO pins : GLED_Pin RLED_Pin */
-  GPIO_InitStruct.Pin = GLED_Pin|RLED_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_OD;
-  GPIO_InitStruct.Pull = GPIO_PULLUP;
+  /*Configure GPIO pins : LCD_DB6_Pin LCD_DB4_Pin LCD_RS_Pin */
+  GPIO_InitStruct.Pin = LCD_DB6_Pin|LCD_DB4_Pin|LCD_RS_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
-
-  /*Configure GPIO pin : IRQ_Pin */
-  GPIO_InitStruct.Pin = IRQ_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  HAL_GPIO_Init(IRQ_GPIO_Port, &GPIO_InitStruct);
 
 }
 
