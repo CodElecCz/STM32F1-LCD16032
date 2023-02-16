@@ -66,9 +66,15 @@ static uint16_t SID_PIN[8] =
 
 void LCD_WriteCmd(uint8_t cmd)
 {
-	HAL_Delay_us(10);
-	HAL_GPIO_WritePin(LCD_RS_GPIO_Port, LCD_RS_Pin, GPIO_PIN_RESET);
-	HAL_GPIO_WritePin(LCD_RW_GPIO_Port, LCD_RW_Pin, GPIO_PIN_RESET);
+
+	GPIO_PinState rs = HAL_GPIO_ReadPin(LCD_RS_GPIO_Port, LCD_RS_Pin);
+	if(rs)
+	{
+		HAL_GPIO_WritePin(LCD_RS_GPIO_Port, LCD_RS_Pin, GPIO_PIN_RESET);
+		HAL_Delay_us(40);
+	}
+
+	HAL_GPIO_WritePin(LCD_EN_GPIO_Port, LCD_EN_Pin, GPIO_PIN_SET);
 
 	for(int i = 0; i < 8; i++)
 	{
@@ -78,18 +84,21 @@ void LCD_WriteCmd(uint8_t cmd)
 			HAL_GPIO_WritePin(SID_PORT[i], SID_PIN[i], GPIO_PIN_RESET);
 	}
 
-	HAL_Delay_us(10);
-	HAL_GPIO_WritePin(LCD_EN_GPIO_Port, LCD_EN_Pin, GPIO_PIN_SET);
-	HAL_Delay_us(10);
+	HAL_Delay_us(2);
 	HAL_GPIO_WritePin(LCD_EN_GPIO_Port, LCD_EN_Pin, GPIO_PIN_RESET);
+	HAL_Delay_us(2);
 }
 
 void LCD_WriteData(uint8_t data)
 {
+	GPIO_PinState rs = HAL_GPIO_ReadPin(LCD_RS_GPIO_Port, LCD_RS_Pin);
+	if(!rs)
+	{
+		HAL_GPIO_WritePin(LCD_RS_GPIO_Port, LCD_RS_Pin, GPIO_PIN_SET);
+		HAL_Delay_us(40);
+	}
 
-	HAL_Delay_us(10);
-	HAL_GPIO_WritePin(LCD_RS_GPIO_Port, LCD_RS_Pin, GPIO_PIN_SET);
-	HAL_GPIO_WritePin(LCD_RW_GPIO_Port, LCD_RW_Pin, GPIO_PIN_RESET);
+	HAL_GPIO_WritePin(LCD_EN_GPIO_Port, LCD_EN_Pin, GPIO_PIN_SET);
 
 	for(int i = 0; i < 8; i++)
 	{
@@ -99,19 +108,22 @@ void LCD_WriteData(uint8_t data)
 			HAL_GPIO_WritePin(SID_PORT[i], SID_PIN[i], GPIO_PIN_RESET);
 	}
 
-	HAL_Delay_us(10);
-	HAL_GPIO_WritePin(LCD_EN_GPIO_Port, LCD_EN_Pin, GPIO_PIN_SET);
-	HAL_Delay_us(10);
+	HAL_Delay_us(2);
 	HAL_GPIO_WritePin(LCD_EN_GPIO_Port, LCD_EN_Pin, GPIO_PIN_RESET);
+	HAL_Delay_us(2);
 }
 
 void LCD_Init(void)
 {
+	HAL_GPIO_WritePin(LCD_RW_GPIO_Port, LCD_RW_Pin, GPIO_PIN_RESET);
+
 	HAL_Delay_ms(50);
 	LCD_WriteCmd(0x30);
+	HAL_Delay_us(110);
 	LCD_WriteCmd(0x30);
-	LCD_WriteCmd(0x0E);
+	HAL_Delay_us(40);
 	LCD_WriteCmd(0x0C);
+	HAL_Delay_us(110);
 	LCD_WriteCmd(0x01);
 	HAL_Delay_ms(11);
 	LCD_WriteCmd(0x06);
@@ -145,31 +157,27 @@ uint8_t u8g2_gpio_and_delay_stm32(U8X8_UNUSED u8x8_t *u8x8, U8X8_UNUSED uint8_t 
 
 	switch(msg)
 	{
-    case U8X8_MSG_GPIO_AND_DELAY_INIT:	// called once during init phase of u8g2/u8x8
+    case U8X8_MSG_GPIO_AND_DELAY_INIT:
     	LCD_Init();
     	break;
-
-    case U8X8_MSG_DELAY_NANO:			// delay arg_int * 1 nano second
-    	HAL_Delay_us(arg_int);
+    case U8X8_MSG_DELAY_NANO:
     	break;
-
-    case U8X8_MSG_DELAY_100NANO:		// delay arg_int * 100 nano seconds
-    	HAL_Delay_us(arg_int);
-    	break;
-
-    case U8X8_MSG_DELAY_10MICRO:		// delay arg_int * 10 micro seconds
-    	HAL_Delay_us(arg_int * 10);
-    	break;
-
-    case U8X8_MSG_DELAY_MILLI:			// delay arg_int * 1 milli second
+    case U8X8_MSG_DELAY_MILLI:
     	HAL_Delay_ms(arg_int);
     	break;
-
     case U8X8_MSG_GPIO_E:
     	HAL_GPIO_WritePin(LCD_EN_GPIO_Port, LCD_EN_Pin, arg_int? GPIO_PIN_SET:GPIO_PIN_RESET);
+    	HAL_Delay_us(2);
     	break;
     case U8X8_MSG_GPIO_DC:
-		HAL_GPIO_WritePin(LCD_RS_GPIO_Port, LCD_RS_Pin, arg_int? GPIO_PIN_SET:GPIO_PIN_RESET);
+    	{
+    		GPIO_PinState rs = HAL_GPIO_ReadPin(LCD_RS_GPIO_Port, LCD_RS_Pin);
+    		if(rs!=arg_int)
+    		{
+    			HAL_GPIO_WritePin(LCD_RS_GPIO_Port, LCD_RS_Pin, arg_int? GPIO_PIN_SET:GPIO_PIN_RESET);
+    			HAL_Delay_us(40);
+    		}
+    	}
 		break;
 	case U8X8_MSG_GPIO_D0:
 		HAL_GPIO_WritePin(LCD_DB0_GPIO_Port, LCD_DB0_Pin, arg_int? GPIO_PIN_SET:GPIO_PIN_RESET);

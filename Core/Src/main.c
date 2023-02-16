@@ -93,7 +93,7 @@ int main(void)
   MX_TIM1_Init();
   /* USER CODE BEGIN 2 */
 
-
+#if 1
     /* u8glib2 will use frame buffer */
     u8g2_Setup_st7920_p_192x32_f(&u8g2, U8G2_R0, u8x8_byte_8bit_6800mode, u8g2_gpio_and_delay_stm32);
     u8g2_InitDisplay(&u8g2);
@@ -107,6 +107,11 @@ int main(void)
 	u8g2_DrawUTF8(&u8g2, 10, 22, "☀ěščřžýáíé");
 
 	u8g2_SendBuffer(&u8g2);
+#else
+	LCD_Init();
+	LCD_PutStr(0, 0, "abcdefgh");
+	LCD_PutStr(0, 15, "0123456789");
+#endif
 
   /* USER CODE END 2 */
 
@@ -187,7 +192,7 @@ static void MX_TIM1_Init(void)
 
   /* USER CODE END TIM1_Init 1 */
   htim1.Instance = TIM1;
-  htim1.Init.Prescaler = 479;
+  htim1.Init.Prescaler = 47;
   htim1.Init.CounterMode = TIM_COUNTERMODE_UP;
   htim1.Init.Period = 65535;
   htim1.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;

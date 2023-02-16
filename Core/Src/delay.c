@@ -24,7 +24,7 @@ static void delay_us(uint16_t us)
 
 void HAL_Delay_us(uint32_t us)
 {
-	uint32_t us_act = us/10;
+	uint32_t us_act = us;
 	while(us_act>UINT16_MAX)
 	{
 		delay_us(UINT16_MAX);
