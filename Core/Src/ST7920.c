@@ -1,8 +1,8 @@
 /*
- * ST7920.c
+ * ST7920.h
  *
- *  Created on: 3 Mart 2019
- *      Author: fatih
+ *  Created on: 15.02.2023
+ *      Author: radomir.turca@codelec.cz
  */
 
 #include "ST7920.h"
@@ -10,18 +10,133 @@
 #include "delay.h"
 
 /*
- *  GLCD_PIN	SPI
- *  E   ------> CLK
- *  RS  ------> CS
- *  RW  ------> Data (SID)
+ 	 RS(CS*) 	Register select/(Chip select) for serial mode
+ 	 RW(SID*) 	Read write control / (serial data input)
+ 	 E(SCLK*)	Enable trigger/(serial clock)
+ 	 D4 to D7	Higher nibble data bus for 8 bit interface
+ 	 D0 to D3   Lower nibble data bus for 8 bit interface
+
+ 	 ST7920 is in parallel mode by pulling up PSB pin
+ 	 ST7920 is in serial interface mode when pull down PSB pin
  */
 
+/*
+ * DISPLAY STATUS
+		D : Display ON/OFF control bit
+			When D = "1", display ON
+			When D = "0",display OFF , the content of DDRAM is not changed
+		C : Cursor ON/OFF control bit
+			When C = "1", cursor ON.
+			When C = "0", cursor OFF.
+		B : Blink ON/OFF control bit
+			When B = "1", cursor position blink ON. Then display data in cursor position will blink.
+			When B = "0", cursor position blink OFF
 
+ * ENTRY MODE SET
+ 		I/D :address counter increase / decrease
+			When I/D = "1", cursor moves right, DRAM address counter（AC）add by 1.
+			When I/D = "0", cursor moves left, DRAM address counter（AC）subtract by 1.
+		S: Display shift
 
-void st7920_io_cfg(void)
+ */
+
+static GPIO_TypeDef * SID_PORT[8] =
 {
+		LCD_DB7_GPIO_Port,
+		LCD_DB6_GPIO_Port,
+		LCD_DB5_GPIO_Port,
+		LCD_DB4_GPIO_Port,
+		LCD_DB3_GPIO_Port,
+		LCD_DB2_GPIO_Port,
+		LCD_DB1_GPIO_Port,
+		LCD_DB0_GPIO_Port
+};
+
+static uint16_t SID_PIN[8] =
+{
+		LCD_DB7_Pin,
+		LCD_DB6_Pin,
+		LCD_DB5_Pin,
+		LCD_DB4_Pin,
+		LCD_DB3_Pin,
+		LCD_DB2_Pin,
+		LCD_DB1_Pin,
+		LCD_DB0_Pin
+};
+
+void LCD_WriteCmd(uint8_t cmd)
+{
+	HAL_Delay_us(10);
+	HAL_GPIO_WritePin(LCD_RS_GPIO_Port, LCD_RS_Pin, GPIO_PIN_RESET);
 	HAL_GPIO_WritePin(LCD_RW_GPIO_Port, LCD_RW_Pin, GPIO_PIN_RESET);
+
+	for(int i = 0; i < 8; i++)
+	{
+		if((cmd << i) & 0x80)
+			HAL_GPIO_WritePin(SID_PORT[i], SID_PIN[i], GPIO_PIN_SET);
+		else
+			HAL_GPIO_WritePin(SID_PORT[i], SID_PIN[i], GPIO_PIN_RESET);
+	}
+
+	HAL_Delay_us(10);
+	HAL_GPIO_WritePin(LCD_EN_GPIO_Port, LCD_EN_Pin, GPIO_PIN_SET);
+	HAL_Delay_us(10);
 	HAL_GPIO_WritePin(LCD_EN_GPIO_Port, LCD_EN_Pin, GPIO_PIN_RESET);
+}
+
+void LCD_WriteData(uint8_t data)
+{
+
+	HAL_Delay_us(10);
+	HAL_GPIO_WritePin(LCD_RS_GPIO_Port, LCD_RS_Pin, GPIO_PIN_SET);
+	HAL_GPIO_WritePin(LCD_RW_GPIO_Port, LCD_RW_Pin, GPIO_PIN_RESET);
+
+	for(int i = 0; i < 8; i++)
+	{
+		if((data << i) & 0x80)
+			HAL_GPIO_WritePin(SID_PORT[i], SID_PIN[i], GPIO_PIN_SET);
+		else
+			HAL_GPIO_WritePin(SID_PORT[i], SID_PIN[i], GPIO_PIN_RESET);
+	}
+
+	HAL_Delay_us(10);
+	HAL_GPIO_WritePin(LCD_EN_GPIO_Port, LCD_EN_Pin, GPIO_PIN_SET);
+	HAL_Delay_us(10);
+	HAL_GPIO_WritePin(LCD_EN_GPIO_Port, LCD_EN_Pin, GPIO_PIN_RESET);
+}
+
+void LCD_Init(void)
+{
+	HAL_Delay_ms(50);
+	LCD_WriteCmd(0x30);
+	LCD_WriteCmd(0x30);
+	LCD_WriteCmd(0x0E);
+	LCD_WriteCmd(0x0C);
+	LCD_WriteCmd(0x01);
+	HAL_Delay_ms(11);
+	LCD_WriteCmd(0x06);
+}
+
+void LCD_SetCursor(uint8_t CharY, uint8_t CharX)
+{
+	uint8_t CharSite;
+	CharX=CharX & 0x0f;
+	CharY=CharY & 0x0f;
+	CharY=CharY<<4;
+	CharY=CharY & 0x30;
+	CharY=CharY | 0x80;
+	CharSite=CharX | CharY;
+	LCD_WriteCmd(CharSite);
+}
+
+void LCD_PutStr(uint8_t CharY,uint8_t CharX, uint8_t *ASC_GB)
+{
+	LCD_SetCursor(CharY,CharX);
+	while(*ASC_GB>0 && (*ASC_GB!='\0') )
+	{
+		LCD_WriteData(*ASC_GB);
+		ASC_GB++;
+	}
 }
 
 uint8_t u8g2_gpio_and_delay_stm32(U8X8_UNUSED u8x8_t *u8x8, U8X8_UNUSED uint8_t msg, U8X8_UNUSED uint8_t arg_int, U8X8_UNUSED void *arg_ptr)
@@ -31,7 +146,7 @@ uint8_t u8g2_gpio_and_delay_stm32(U8X8_UNUSED u8x8_t *u8x8, U8X8_UNUSED uint8_t 
 	switch(msg)
 	{
     case U8X8_MSG_GPIO_AND_DELAY_INIT:	// called once during init phase of u8g2/u8x8
-    	st7920_io_cfg();
+    	LCD_Init();
     	break;
 
     case U8X8_MSG_DELAY_NANO:			// delay arg_int * 1 nano second
@@ -56,7 +171,6 @@ uint8_t u8g2_gpio_and_delay_stm32(U8X8_UNUSED u8x8_t *u8x8, U8X8_UNUSED uint8_t 
     case U8X8_MSG_GPIO_DC:
 		HAL_GPIO_WritePin(LCD_RS_GPIO_Port, LCD_RS_Pin, arg_int? GPIO_PIN_SET:GPIO_PIN_RESET);
 		break;
-
 	case U8X8_MSG_GPIO_D0:
 		HAL_GPIO_WritePin(LCD_DB0_GPIO_Port, LCD_DB0_Pin, arg_int? GPIO_PIN_SET:GPIO_PIN_RESET);
 		break;
