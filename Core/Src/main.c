@@ -19,7 +19,6 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
-#include "usb_device.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -34,7 +33,7 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-#define U8G2	0
+#define U8G2	1
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -56,7 +55,7 @@ void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
 static void MX_TIM1_Init(void);
 /* USER CODE BEGIN PFP */
-void MX_GPIO_USB_Init(void);
+
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -92,7 +91,6 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
-  MX_USB_DEVICE_Init();
   MX_TIM1_Init();
   /* USER CODE BEGIN 2 */
 
@@ -105,16 +103,27 @@ int main(void)
     u8g2_ClearBuffer(&u8g2);
 	u8g2_SetFontMode(&u8g2, 1);
 	u8g2_SetFontDirection(&u8g2, 0);
+	u8g2_SetFont(&u8g2, u8g2_font_6x12_te);
 
-	u8g2_SetFont(&u8g2, u8g2_font_6x12_t_symbols);
-	u8g2_DrawUTF8(&u8g2, 10, 22, "abcdefgh");
+	u8g2_DrawLine(&u8g2, 0, 0, 160, 0);
+	u8g2_DrawUTF8(&u8g2, 0, 9, "012345678901234567890123456789");
+	u8g2_DrawLine(&u8g2, 0, 10, 160, 10);
+	u8g2_DrawUTF8(&u8g2, 0, 20, "ABCDEFGH - ěščřžýáíé");
+	u8g2_DrawLine(&u8g2, 0, 21, 160, 21);
+	u8g2_DrawUTF8(&u8g2, 0, 30, "012345678901234567890123456789");
+	u8g2_DrawLine(&u8g2, 0, 31, 160, 31);
 
 	u8g2_SendBuffer(&u8g2);
 #else
 	//build-in fonts
 	LCD_Init();
-	LCD_PutStr(0, 0, (uint8_t*)"abcdefgh");
-	LCD_PutStr(0, 1, (uint8_t*)"0123456789");
+	LCD_PutStr(0, 0, (const uint8_t*)"01234567890123456789");
+
+	uint8_t text[] = {'A', 'B', 'C', ' ', '-', ' ', 0, 0};
+	uint8_t *ch = &text[6];
+
+	LCD_PutStr(0, 1, text);
+
 #endif
 
   /* USER CODE END 2 */
@@ -124,7 +133,14 @@ int main(void)
   while (1)
   {
     /* USER CODE END WHILE */
+#if U8G2
 
+
+#else
+	  *ch += 1;
+	  LCD_PutStr(0, 1, text);
+#endif
+	  HAL_Delay_ms(200);
     /* USER CODE BEGIN 3 */
   }
   /* USER CODE END 3 */
@@ -138,7 +154,6 @@ void SystemClock_Config(void)
 {
   RCC_OscInitTypeDef RCC_OscInitStruct = {0};
   RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
-  RCC_PeriphCLKInitTypeDef PeriphClkInit = {0};
 
   /** Initializes the RCC Oscillators according to the specified parameters
   * in the RCC_OscInitTypeDef structure.
@@ -164,12 +179,6 @@ void SystemClock_Config(void)
   RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;
 
   if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_2) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  PeriphClkInit.PeriphClockSelection = RCC_PERIPHCLK_USB;
-  PeriphClkInit.UsbClockSelection = RCC_USBCLKSOURCE_PLL_DIV1_5;
-  if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInit) != HAL_OK)
   {
     Error_Handler();
   }
@@ -261,21 +270,7 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
-void MX_GPIO_USB_Init(void)
-{
-	GPIO_InitTypeDef GPIO_InitStruct = {0};
 
-	//USB reset
-    GPIO_InitStruct.Pin = GPIO_PIN_12;
-    GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_OD;
-    GPIO_InitStruct.Pull = GPIO_PULLUP;
-    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-    HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
-
-    HAL_GPIO_WritePin(GPIOA, GPIO_PIN_12, GPIO_PIN_SET);
-    HAL_Delay(10);
-    HAL_GPIO_WritePin(GPIOA, GPIO_PIN_12, GPIO_PIN_RESET);
-}
 /* USER CODE END 4 */
 
 /**

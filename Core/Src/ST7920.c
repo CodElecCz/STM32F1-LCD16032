@@ -1,5 +1,5 @@
 /*
- * ST7920.h
+ * ST7920.c
  *
  *  Created on: 15.02.2023
  *      Author: radomir.turca@codelec.cz
@@ -84,9 +84,9 @@ void LCD_WriteCmd(uint8_t cmd)
 			HAL_GPIO_WritePin(SID_PORT[i], SID_PIN[i], GPIO_PIN_RESET);
 	}
 
-	HAL_Delay_us(3);
+	HAL_Delay_us(8);
 	HAL_GPIO_WritePin(LCD_EN_GPIO_Port, LCD_EN_Pin, GPIO_PIN_RESET);
-	HAL_Delay_us(3);
+	HAL_Delay_us(8);
 }
 
 void LCD_WriteData(uint8_t data)
@@ -108,9 +108,9 @@ void LCD_WriteData(uint8_t data)
 			HAL_GPIO_WritePin(SID_PORT[i], SID_PIN[i], GPIO_PIN_RESET);
 	}
 
-	HAL_Delay_us(3);
+	HAL_Delay_us(8);
 	HAL_GPIO_WritePin(LCD_EN_GPIO_Port, LCD_EN_Pin, GPIO_PIN_RESET);
-	HAL_Delay_us(3);
+	HAL_Delay_us(8);
 }
 
 void LCD_Init(void)
@@ -129,24 +129,24 @@ void LCD_Init(void)
 	LCD_WriteCmd(0x06);
 }
 
-void LCD_SetCursor(uint8_t CharX, uint8_t CharY)
+void LCD_SetCursor(uint8_t x, uint8_t y)
 {
 	uint8_t CharSite;
 
-	CharX = CharX & 0x0f;
+	x = x & 0x0f;
 
-	CharY = CharY & 0x0f;
-	CharY = CharY << 4;
-	CharY = CharY & 0x30;
+	y = y & 0x0f;
+	y = y << 4;
+	y = y & 0x30;
 
-	CharSite= CharX | CharY | 0x80;
+	CharSite= x | y | 0x80;
 
 	LCD_WriteCmd(CharSite);
 }
 
-void LCD_PutStr(uint8_t CharX, uint8_t CharY, uint8_t *ASC_GB)
+void LCD_PutStr(uint8_t x, uint8_t y, const uint8_t *ASC_GB)
 {
-	LCD_SetCursor(CharX, CharY);
+	LCD_SetCursor(x, y);
 
 	while(*ASC_GB > 0 && (*ASC_GB != '\0'))
 	{
@@ -171,7 +171,7 @@ uint8_t u8g2_gpio_and_delay_stm32(U8X8_UNUSED u8x8_t *u8x8, U8X8_UNUSED uint8_t 
     	break;
     case U8X8_MSG_GPIO_E:
     	HAL_GPIO_WritePin(LCD_EN_GPIO_Port, LCD_EN_Pin, arg_int? GPIO_PIN_SET:GPIO_PIN_RESET);
-    	HAL_Delay_us(3);
+    	HAL_Delay_us(8);
     	break;
     case U8X8_MSG_GPIO_DC:
     	{
