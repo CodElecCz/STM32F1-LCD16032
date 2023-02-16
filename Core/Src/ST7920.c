@@ -84,9 +84,9 @@ void LCD_WriteCmd(uint8_t cmd)
 			HAL_GPIO_WritePin(SID_PORT[i], SID_PIN[i], GPIO_PIN_RESET);
 	}
 
-	HAL_Delay_us(2);
+	HAL_Delay_us(3);
 	HAL_GPIO_WritePin(LCD_EN_GPIO_Port, LCD_EN_Pin, GPIO_PIN_RESET);
-	HAL_Delay_us(2);
+	HAL_Delay_us(3);
 }
 
 void LCD_WriteData(uint8_t data)
@@ -108,9 +108,9 @@ void LCD_WriteData(uint8_t data)
 			HAL_GPIO_WritePin(SID_PORT[i], SID_PIN[i], GPIO_PIN_RESET);
 	}
 
-	HAL_Delay_us(2);
+	HAL_Delay_us(3);
 	HAL_GPIO_WritePin(LCD_EN_GPIO_Port, LCD_EN_Pin, GPIO_PIN_RESET);
-	HAL_Delay_us(2);
+	HAL_Delay_us(3);
 }
 
 void LCD_Init(void)
@@ -129,22 +129,26 @@ void LCD_Init(void)
 	LCD_WriteCmd(0x06);
 }
 
-void LCD_SetCursor(uint8_t CharY, uint8_t CharX)
+void LCD_SetCursor(uint8_t CharX, uint8_t CharY)
 {
 	uint8_t CharSite;
-	CharX=CharX & 0x0f;
-	CharY=CharY & 0x0f;
-	CharY=CharY<<4;
-	CharY=CharY & 0x30;
-	CharY=CharY | 0x80;
-	CharSite=CharX | CharY;
+
+	CharX = CharX & 0x0f;
+
+	CharY = CharY & 0x0f;
+	CharY = CharY << 4;
+	CharY = CharY & 0x30;
+
+	CharSite= CharX | CharY | 0x80;
+
 	LCD_WriteCmd(CharSite);
 }
 
-void LCD_PutStr(uint8_t CharY,uint8_t CharX, uint8_t *ASC_GB)
+void LCD_PutStr(uint8_t CharX, uint8_t CharY, uint8_t *ASC_GB)
 {
-	LCD_SetCursor(CharY,CharX);
-	while(*ASC_GB>0 && (*ASC_GB!='\0') )
+	LCD_SetCursor(CharX, CharY);
+
+	while(*ASC_GB > 0 && (*ASC_GB != '\0'))
 	{
 		LCD_WriteData(*ASC_GB);
 		ASC_GB++;
@@ -167,7 +171,7 @@ uint8_t u8g2_gpio_and_delay_stm32(U8X8_UNUSED u8x8_t *u8x8, U8X8_UNUSED uint8_t 
     	break;
     case U8X8_MSG_GPIO_E:
     	HAL_GPIO_WritePin(LCD_EN_GPIO_Port, LCD_EN_Pin, arg_int? GPIO_PIN_SET:GPIO_PIN_RESET);
-    	HAL_Delay_us(2);
+    	HAL_Delay_us(3);
     	break;
     case U8X8_MSG_GPIO_DC:
     	{

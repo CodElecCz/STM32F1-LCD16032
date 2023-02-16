@@ -11,6 +11,9 @@
 #include <stdint.h>
 #include "u8g2.h"
 
+void LCD_Init(void);
+void LCD_PutStr(uint8_t CharX, uint8_t CharY, uint8_t *ASC_GB);
+
 uint8_t u8g2_gpio_and_delay_stm32(U8X8_UNUSED u8x8_t *u8x8, U8X8_UNUSED uint8_t msg, U8X8_UNUSED uint8_t arg_int, U8X8_UNUSED void *arg_ptr);
 
 #endif /* ST7920_H_ */

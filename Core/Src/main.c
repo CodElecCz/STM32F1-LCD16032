@@ -89,11 +89,11 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
-  //MX_USB_DEVICE_Init();
+  MX_USB_DEVICE_Init();
   MX_TIM1_Init();
   /* USER CODE BEGIN 2 */
 
-#if 1
+#if 0
     /* u8glib2 will use frame buffer */
     u8g2_Setup_st7920_p_192x32_f(&u8g2, U8G2_R0, u8x8_byte_8bit_6800mode, u8g2_gpio_and_delay_stm32);
     u8g2_InitDisplay(&u8g2);
@@ -103,14 +103,14 @@ int main(void)
 	u8g2_SetFontMode(&u8g2, 1);
 	u8g2_SetFontDirection(&u8g2, 0);
 
-	u8g2_SetFont(&u8g2, u8g2_font_unifont_t_symbols);
-	u8g2_DrawUTF8(&u8g2, 10, 22, "☀ěščřžýáíé");
+	u8g2_SetFont(&u8g2, u8g2_font_6x12_t_symbols);
+	u8g2_DrawUTF8(&u8g2, 10, 22, "abcdefgh");
 
 	u8g2_SendBuffer(&u8g2);
 #else
 	LCD_Init();
 	LCD_PutStr(0, 0, "abcdefgh");
-	LCD_PutStr(0, 15, "0123456789");
+	LCD_PutStr(0, 1, "0123456789");
 #endif
 
   /* USER CODE END 2 */
@@ -121,8 +121,6 @@ int main(void)
   {
     /* USER CODE END WHILE */
 
-
-	  	HAL_Delay_ms(1000);
     /* USER CODE BEGIN 3 */
   }
   /* USER CODE END 3 */
@@ -147,7 +145,7 @@ void SystemClock_Config(void)
   RCC_OscInitStruct.HSIState = RCC_HSI_ON;
   RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
   RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSE;
-  RCC_OscInitStruct.PLL.PLLMUL = RCC_PLL_MUL6;
+  RCC_OscInitStruct.PLL.PLLMUL = RCC_PLL_MUL9;
   if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
   {
     Error_Handler();
@@ -161,12 +159,12 @@ void SystemClock_Config(void)
   RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV2;
   RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;
 
-  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_1) != HAL_OK)
+  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_2) != HAL_OK)
   {
     Error_Handler();
   }
   PeriphClkInit.PeriphClockSelection = RCC_PERIPHCLK_USB;
-  PeriphClkInit.UsbClockSelection = RCC_USBCLKSOURCE_PLL;
+  PeriphClkInit.UsbClockSelection = RCC_USBCLKSOURCE_PLL_DIV1_5;
   if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInit) != HAL_OK)
   {
     Error_Handler();
@@ -192,7 +190,7 @@ static void MX_TIM1_Init(void)
 
   /* USER CODE END TIM1_Init 1 */
   htim1.Instance = TIM1;
-  htim1.Init.Prescaler = 47;
+  htim1.Init.Prescaler = 71;
   htim1.Init.CounterMode = TIM_COUNTERMODE_UP;
   htim1.Init.Period = 65535;
   htim1.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
