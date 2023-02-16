@@ -34,6 +34,7 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
+#define U8G2	0
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -45,7 +46,9 @@
 TIM_HandleTypeDef htim1;
 
 /* USER CODE BEGIN PV */
+#if U8G2
 static u8g2_t u8g2;
+#endif
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -93,7 +96,7 @@ int main(void)
   MX_TIM1_Init();
   /* USER CODE BEGIN 2 */
 
-#if 0
+#if U8G2
     /* u8glib2 will use frame buffer */
     u8g2_Setup_st7920_p_192x32_f(&u8g2, U8G2_R0, u8x8_byte_8bit_6800mode, u8g2_gpio_and_delay_stm32);
     u8g2_InitDisplay(&u8g2);
@@ -108,9 +111,10 @@ int main(void)
 
 	u8g2_SendBuffer(&u8g2);
 #else
+	//build-in fonts
 	LCD_Init();
-	LCD_PutStr(0, 0, "abcdefgh");
-	LCD_PutStr(0, 1, "0123456789");
+	LCD_PutStr(0, 0, (uint8_t*)"abcdefgh");
+	LCD_PutStr(0, 1, (uint8_t*)"0123456789");
 #endif
 
   /* USER CODE END 2 */
